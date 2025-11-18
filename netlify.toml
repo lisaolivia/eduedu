@@ -1,16 +1,14 @@
 [build]
   base = "frontend"
   command = "npm install && npm run build"
-  publish = ".next" 
-
-# Next.js App Router - handle client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+  # Netlify auto-detects Next.js and handles publish directory automatically
 
 [build.environment]
   NODE_VERSION = "20"
+
+# Netlify Next.js plugin (auto-detected, but we can be explicit)
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # Security headers
 [[headers]]
