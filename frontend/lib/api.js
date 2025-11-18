@@ -16,20 +16,32 @@ export async function apiFetch(path, options = {}) {
 
   // Ensure path starts with /api if it doesn't already
   const apiPath = path.startsWith("/api") ? path : `/api${path}`;
-  const res = await fetch(`${API_BASE}${apiPath}`, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
+  const fullUrl = `${API_BASE}${apiPath}`;
+  
+  try {
+    const res = await fetch(fullUrl, {
+      ...options,
+      headers,
+      credentials: "include",
+    });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.msg || `Request failed: ${res.status}`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.msg || `Request failed: ${res.status}`);
+    }
+
+    if (res.status === 204) {
+      return null;
+    }
+
+    return res.json();
+  } catch (error) {
+    // Provide more helpful error messages
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.error(`[API] Network error - Could not reach: ${fullUrl}`);
+      console.error(`[API] Check if backend is running and CORS is configured`);
+      throw new Error(`Cannot connect to server. Please check if the backend is running at ${API_BASE}`);
+    }
+    throw error;
   }
-
-  if (res.status === 204) {
-    return null;
-  }
-
-  return res.json();
 }

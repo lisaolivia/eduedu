@@ -32,17 +32,46 @@ const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
   : ["http://localhost:3000"];
 
+// Add common Netlify patterns if not already included
+if (process.env.NODE_ENV === "production") {
+  const netlifyPatterns = [
+    "https://edusafe-paw.netlify.app",
+    "https://*.netlify.app"
+  ];
+  allowedOrigins.push(...netlifyPatterns);
+}
+
 api.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === "development") {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    
+    // Check exact match
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+    
+    // Check wildcard patterns (for Netlify previews)
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed.includes('*')) {
+        const pattern = allowed.replace('*', '.*');
+        const regex = new RegExp(`^${pattern}$`);
+        return regex.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed || process.env.NODE_ENV === "development") {
+      return callback(null, true);
+    }
+    
+    console.log(`[CORS] Blocked origin: ${origin}`);
+    console.log(`[CORS] Allowed origins:`, allowedOrigins);
+    callback(new Error("Not allowed by CORS"));
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 api.use(cookieParser());
 api.use(morgan("dev"));
