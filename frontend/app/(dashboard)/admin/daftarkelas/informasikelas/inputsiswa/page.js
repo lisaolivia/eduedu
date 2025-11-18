@@ -1,15 +1,13 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import FormContainer from "@/app/components/userPage/FormContainer";
 
-
-
-export default function InputSiswaBaru() {
+function InputSiswaBaruContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const classId = searchParams.get("classId");
@@ -89,5 +87,20 @@ export default function InputSiswaBaru() {
         onSubmit={handleSubmit}
       />
     </div>
+  );
+}
+
+export default function InputSiswaBaru() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center mt-[10vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0D58AB] mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat halaman...</p>
+        </div>
+      </div>
+    }>
+      <InputSiswaBaruContent />
+    </Suspense>
   );
 }

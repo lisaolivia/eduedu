@@ -1,12 +1,11 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 
-
-export default function InformasiKelas() {
+function InformasiKelasContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const router = useRouter();
@@ -367,5 +366,20 @@ async function handleRemoveFromClass(id) {
         </AnimatePresence>
       </motion.div>
     </div>
+  );
+}
+
+export default function InformasiKelas() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0D58AB] mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat halaman...</p>
+        </div>
+      </div>
+    }>
+      <InformasiKelasContent />
+    </Suspense>
   );
 }
