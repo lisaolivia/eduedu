@@ -7,6 +7,10 @@ function makeKey(req) {
 }
 
 export function cacheGet(req, res, next) {
+  if (!redis) {
+    res.set("X-Cache", "DISABLED");
+    return next();
+  }
   const key = makeKey(req);
   redis.get(key).then((hit) => {
     if (hit) {
@@ -16,16 +20,25 @@ export function cacheGet(req, res, next) {
     res.__cacheKey = key;
     res.set("X-Cache", "MISS");
     next();
-  }).catch(next);
+  }).catch((err) => {
+    console.error('[cache] Redis get error:', err.message);
+    res.set("X-Cache", "ERROR");
+    next(); // Continue without cache
+  });
 }
 
 export function cacheSet(req, res, next) {
+  if (!redis) {
+    return next();
+  }
   const orig = res.json.bind(res);
   res.json = (body) => {
     const key = res.__cacheKey;
     if (key) {
       const ttl = Number(res.__cacheTTL || process.env.DEFAULT_CACHE_TTL || 300); // default 5 menit
-      redis.set(key, JSON.stringify(body), "EX", ttl).catch(() => {});
+      redis.set(key, JSON.stringify(body), "EX", ttl).catch((err) => {
+        console.error('[cache] Redis set error:', err.message);
+      });
     }
     return orig(body);
   };
@@ -40,12 +53,17 @@ export function cacheFor(seconds) {
 }
 
 export async function cacheDelPrefix(prefix) {
-  const pattern = `*:${prefix}*`;
-  let cursor = "0", keys = [];
-  do {
-    const [cur, batch] = await redis.scan(cursor, "MATCH", pattern, "COUNT", "200");
-    cursor = cur;
-    keys = keys.concat(batch);
-  } while (cursor !== "0");
-  if (keys.length) await redis.del(keys);
+  if (!redis) return;
+  try {
+    const pattern = `*:${prefix}*`;
+    let cursor = "0", keys = [];
+    do {
+      const [cur, batch] = await redis.scan(cursor, "MATCH", pattern, "COUNT", "200");
+      cursor = cur;
+      keys = keys.concat(batch);
+    } while (cursor !== "0");
+    if (keys.length) await redis.del(keys);
+  } catch (err) {
+    console.error('[cache] Redis delPrefix error:', err.message);
+  }
 }

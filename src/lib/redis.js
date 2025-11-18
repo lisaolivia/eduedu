@@ -35,11 +35,23 @@ function buildRedisFromParts() {
   return new IORedis({ host, port, username, password, tls, family: 0, maxRetriesPerRequest: null, enableReadyCheck: true });
 }
 
-const url = process.env.REDIS_URL;
-const redis = url ? buildRedisFromUrl(url) : buildRedisFromParts();
+// Make Redis optional - only initialize if configured
+let redis = null;
 
-redis.on('connect', () => console.log('[redis] connected'));
-redis.on('ready',   () => console.log('[redis] ready'));
-redis.on('error',   (e) => console.error('[redis] error:', e.message));
+try {
+  const url = process.env.REDIS_URL;
+  if (url || process.env.REDIS_HOST) {
+    redis = url ? buildRedisFromUrl(url) : buildRedisFromParts();
+    redis.on('connect', () => console.log('[redis] connected'));
+    redis.on('ready',   () => console.log('[redis] ready'));
+    redis.on('error',   (e) => console.error('[redis] error:', e.message));
+  } else {
+    console.log('[redis] Redis not configured, caching disabled');
+  }
+} catch (err) {
+  console.warn('[redis] Failed to initialize Redis:', err.message);
+  console.warn('[redis] Caching will be disabled');
+  redis = null;
+}
 
 export default redis;

@@ -1,8 +1,6 @@
 const nextConfig = {
-  // Next.js config
-  output: 'standalone', // For better deployment compatibility
-  // Enable if you need to export static files
-  // output: 'export',
+  // Next.js config for Netlify
+  // Netlify has built-in Next.js support, no need for standalone
 };
 
 export default nextConfig;

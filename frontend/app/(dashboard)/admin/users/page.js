@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import {useRouter} from 'next/navigation';
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import LoadingOverlay from "../../../components/LoadingOverlay";
+import { apiFetch } from "@/lib/api";
 
 export default function Tabel() {
   const [accounts, setAccounts] = useState([]);
@@ -12,14 +13,13 @@ export default function Tabel() {
     const router = useRouter();
 
         useEffect(() => {
-        fetch("http://localhost:4000/api/users/accounts", {
-            method: "GET",
-            credentials: "include",
-        })
-            .then((res) => res.json())
+        apiFetch("/api/users")
             .then((data) => {
             console.log("DATA DARI API:", data);
-            setAccounts(data);
+            setAccounts(data.data || data);
+            })
+            .catch((err) => {
+            console.error("Error fetching users:", err);
             });
         }, []);
 
