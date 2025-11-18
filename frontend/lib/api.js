@@ -1,4 +1,9 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const API_BASE_RAW = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
+// Ensure API_BASE has protocol (add https:// if missing)
+const API_BASE = API_BASE_RAW.startsWith("http://") || API_BASE_RAW.startsWith("https://")
+  ? API_BASE_RAW
+  : `https://${API_BASE_RAW}`;
 
 export async function apiFetch(path, options = {}) {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;

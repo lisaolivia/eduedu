@@ -20,7 +20,8 @@ export default function CuacaPage() {
   useEffect(() => {
     async function fetchWeather() {
       try {
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+        const API_BASE_RAW = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+        const API_BASE = API_BASE_RAW.startsWith("http://") || API_BASE_RAW.startsWith("https://") ? API_BASE_RAW : `https://${API_BASE_RAW}`;
         const res = await fetch(
           `${API_BASE}/api/weather/midday?lat=-0.002122&lon=109.369550`,
           { cache: "no-store" }
@@ -40,7 +41,8 @@ export default function CuacaPage() {
   useEffect(() => {
     async function fetchWeekly() {
       try {
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+        const API_BASE_RAW = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+        const API_BASE = API_BASE_RAW.startsWith("http://") || API_BASE_RAW.startsWith("https://") ? API_BASE_RAW : `https://${API_BASE_RAW}`;
         const res = await fetch(
           `${API_BASE}/api/weather/weekly?lat=-0.002122&lon=109.369550`,
           { cache: "no-store" }
